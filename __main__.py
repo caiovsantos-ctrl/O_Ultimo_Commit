@@ -76,6 +76,16 @@ class JogoBSI:
         self.img_viagem_pe = self.carregar_imagem_segura("andando.jpeg", (1220, 700))
         self.img_desmaio = self.carregar_imagem_segura("desmaio.jpeg", (1220, 700))
         self.img_game_over = self.carregar_imagem_segura("ceu.jpeg", (1220, 700))
+        self.img_vitoria = self.carregar_imagem_segura("sigaa.png", (1220, 700))
+
+        # SOLUÇÃO: Usamos apenas a sua função segura (que já busca na pasta "imagens")
+        # Definimos o tamanho (45, 45) para ficar perfeito no clique do botão escondido
+        self.img_item_pendrive = self.carregar_imagem_segura("pendrive.png", (45, 45))
+        self.img_item_carregador = self.carregar_imagem_segura("carregador.png", (45, 45))
+        self.img_item_caderno = self.carregar_imagem_segura("caderno.png", (45, 45))
+
+        self.item_atual_tela = None
+        
 
     def montar_tela_titulo(self):
         if self.bg_limpo:
@@ -138,6 +148,13 @@ class JogoBSI:
         self.carregar_local("Entrada da UFRPE", self.bg_limpo)
         
     def carregar_local(self, nome_local, imagem_local):
+        if hasattr(self, 'item_atual_tela') and self.item_atual_tela:
+            self.item_atual_tela.destroy()
+            self.item_atual_tela = None
+
+        # Limpa os widgets antigos da janela
+        for widget in self.janela.winfo_children():
+            widget.destroy()
         for widget in self.janela.winfo_children():
             widget.destroy()
 
@@ -233,49 +250,77 @@ class JogoBSI:
                 ctk.CTkButton(frame_loc, text="🚌 Bus", width=50, height=22, font=("Segoe UI", 10), fg_color="#27ae60", command=lambda n=loc_nome, i=loc_img: self.viajar(n, i, "Ônibus")).pack(side="left", padx=2)
 
     def acao_procurar(self):
+        """Gasta tempo/energia e tenta fazer um item aparecer na foto"""
         self.tempo_minutos += 15
         self.energia -= 10
-        msg = "Você procurou pelos arbustos... Nada aqui."
-        if not self.verificar_game_over():
-            self.atualizar_hud(msg)
-
-    def mover_interno(self, destino, imagem_destino):
-        """Mover-se dentro do mesmo prédio. Custa muito pouco tempo e energia."""
-        self.tempo_minutos += 2  # Custa só 2 minutos
-        self.energia -= 1        # Quase não cansa
-        msg = f"Você andou pelos corredores até: {destino}."
         
+        # 1. Lista com todos os itens do jogo
+        todos_itens = [
+            ("Pen Drive com o Código", self.img_item_pendrive), 
+            ("Carregador do Notebook", self.img_item_carregador), 
+            ("Caderno de Anotações", self.img_item_caderno)
+        ]
+        
+        # 2. O SEGREDO: Cria uma lista só com os itens que o jogador AINDA NÃO TEM
+        itens_possiveis = [item for item in todos_itens if item[0] not in self.itens_encontrados]
+        
+        # Se ele já achou os 3 itens do jogo, avisa que acabou
+        if len(itens_possiveis) == 0:
+            msg = "Você procurou por todo lado, mas já pegou tudo de importante que havia para achar!"
+            if not self.verificar_game_over():
+                self.atualizar_hud(msg)
+            return
+
+        # 3. 70% de chance de o item aparecer na foto para ele clicar
+        import random
+        if random.random() < 0.70:
+            item_sorteado, imagem_sorteada = random.choice(itens_possiveis)
+            
+            self.spawnar_item_na_tela(item_sorteado, imagem_sorteada)
+            msg = f"Você examinou o local... Há algo que parece ser o {item_sorteado} escondido na foto! Clique nele!"
+        else:
+            msg = "Você procurou debaixo das mesas, mas não viu nada de útil desta vez."
+
         if not self.verificar_game_over():
-            self.carregar_local(destino, imagem_destino)
             self.atualizar_hud(msg)
 
     def viajar(self, destino, imagem_destino, transporte):
         if transporte == "A Pé":
             self.tempo_minutos += 20
             self.energia -= 15
-            msg = f"Você foi caminhando até {destino}. Cansativo demais... (-15⚡, -20⏰)\n"
-            
-            if random.random() < 0.3:
-                self.energia -= 15
-                msg += "\n⚠️ UM SAGUIM TE ATACOU NO CAMINHO! (-15⚡)"
-            
-            self.mostrar_tela_transicao_pe(destino, imagem_destino, msg)
-            
+   
+            # 30% de chance do Saguim aparecer na caminhada
+            if random.random() < 0.30: 
+                self.mostrar_evento_saguim(destino, imagem_destino)
+            else:
+                msg = f"Você caminhou sob o sol escaldante até {destino}. Cansativo demais... (-15⚡, -20⏰)"
+                self.mostrar_tela_transicao_pe(destino, imagem_destino, msg)
+        
         elif transporte == "Ônibus":
             if self.dinheiro >= 2.25:
                 self.dinheiro -= 2.25
                 self.energia -= 5
                 tempo_onibus = random.choice([5, 10, 20, 30]) 
                 self.tempo_minutos += tempo_onibus
-                msg = f"Foi de Bus! Ele demorou {tempo_onibus} minutos para passar. (-5⚡, -R$2.25)\n"
-                
-                if random.random() < 0.3:
-                    self.energia -= 15
-                    msg += "\n⚠️ O ÔNIBUS FREOU BRUSCAMENTE E VOCÊ BATEU A CABEÇA! (-15⚡)"
+                msg = f"Foi de Bus! Ele demorou {tempo_onibus} minutos para passar. (-5⚡, -R$2.25)"
                 
                 self.mostrar_tela_transicao_onibus(destino, imagem_destino, msg)
             else:
                 self.atualizar_hud("Sem dinheiro para o ônibus! Você vai ter que ir a pé.")
+
+    def mover_interno(self, destino, imagem_destino):
+        """Mover-se dentro do mesmo prédio"""
+        self.tempo_minutos += 2  
+        self.energia -= 1        
+        
+        # 30% de chance de topar com um Veterano se estiver no CEAGRI
+        if "CEAGRI" in destino and random.random() < 0.30:
+            self.mostrar_evento_veterano(destino, imagem_destino)
+        else:
+            msg = f"Você andou pelos corredores até: {destino}."
+            if not self.verificar_game_over():
+                self.carregar_local(destino, imagem_destino)
+                self.atualizar_hud(msg)
 
     def mostrar_tela_transicao_onibus(self, destino, imagem_destino, msg):
         """Tela de transição para o Ônibus (Corrigida)"""
@@ -353,6 +398,134 @@ class JogoBSI:
         except:
             pass
 
+    def mostrar_evento_saguim(self, destino, imagem_destino):
+        """O jogador encontra o Saguim e faz uma escolha rápida"""
+        for widget in self.janela.winfo_children():
+            widget.destroy()
+            
+        self.label_fundo = ctk.CTkLabel(self.janela, width=1220, height=700, image=self.img_viagem_pe, text="")
+        self.label_fundo.place(x=0, y=0)
+        
+        caixa = ctk.CTkFrame(self.janela, width=600, height=280, fg_color="#0a120b", border_color="#f1c40f", border_width=3, corner_radius=12)
+        caixa.place(relx=0.5, rely=0.5, anchor="center")
+        caixa.pack_propagate(False)
+        
+        ctk.CTkLabel(caixa, text="🐒 UM SAGUIM BLOQUEIA O CAMINHO!", font=("Impact", 28), text_color="#f1c40f").pack(pady=(20, 10))
+        ctk.CTkLabel(caixa, text="Ele cruza os braços e começa a pular na sua frente querendo atenção. Como você reage?", font=("Segoe UI", 15, "bold"), text_color="white", wraplength=550).pack(pady=10)
+        
+        # Opção 1: Gasta tempo para despistar com calma
+        ctk.CTkButton(caixa, text="Despistar com paciência (-15⏰)", font=("Segoe UI", 14, "bold"), fg_color="#2980b9", height=40, command=lambda: self.resolver_evento_saguim("tempo", destino, imagem_destino)).pack(pady=5)
+        
+        # Opção 2: Passa correndo e perde energia
+        ctk.CTkButton(caixa, text="Passar correndo (-15⚡)", font=("Segoe UI", 14, "bold"), fg_color="#e74c3c", height=40, command=lambda: self.resolver_evento_saguim("energia", destino, imagem_destino)).pack(pady=5)
+
+    def resolver_evento_saguim(self, escolha, destino, imagem_destino):
+        if escolha == "tempo":
+            self.tempo_minutos += 15
+            msg = "Você perdeu um bom tempo brincando e despistando o saguim, mas ele te deixou em paz. (-15⏰)"
+        else:
+            self.energia -= 15
+            msg = "Você correu com tudo! O saguim te deu um susto e você ficou exausto. (-15⚡)"
+            
+        self.mostrar_tela_transicao_pe(destino, imagem_destino, msg)
+
+    def mostrar_evento_veterano(self, destino, imagem_destino):
+        """O jogador encontra o Veterano no CEAGRI"""
+        for widget in self.janela.winfo_children():
+            widget.destroy()
+            
+        self.label_fundo = ctk.CTkLabel(self.janela, width=1220, height=700, image=imagem_destino, text="")
+        self.label_fundo.place(x=0, y=0)
+        
+        caixa = ctk.CTkFrame(self.janela, width=600, height=280, fg_color="#0a120b", border_color="#9b59b6", border_width=3, corner_radius=12)
+        caixa.place(relx=0.5, rely=0.5, anchor="center")
+        caixa.pack_propagate(False)
+        
+        ctk.CTkLabel(caixa, text="👨‍💻 VETERANO NO CORREDOR", font=("Impact", 28), text_color="#9b59b6").pack(pady=(20, 10))
+        ctk.CTkLabel(caixa, text="Um veterano do curso te para: 'E aí calouro! Quer ouvir umas verdades sobre a prova de programação?'", font=("Segoe UI", 15, "bold"), text_color="white", wraplength=550).pack(pady=10)
+        
+        # Opção 1: Ouve e gasta tempo
+        ctk.CTkButton(caixa, text="Ouvir as 'dicas' (-20⏰)", font=("Segoe UI", 14, "bold"), fg_color="#2980b9", height=40, command=lambda: self.resolver_evento_veterano("ouvir", destino, imagem_destino)).pack(pady=5)
+        
+        # Opção 2: Foge e perde energia (estresse)
+        ctk.CTkButton(caixa, text="Ignorar e sair andando (-10⚡)", font=("Segoe UI", 14, "bold"), fg_color="#e74c3c", height=40, command=lambda: self.resolver_evento_veterano("ignorar", destino, imagem_destino)).pack(pady=5)
+
+    def resolver_evento_veterano(self, escolha, destino, imagem_destino):
+        if escolha == "ouvir":
+            self.tempo_minutos += 20
+            msg = "Ele falou por 20 minutos seguidos sem respirar... Pelo menos você descobriu que não cai Python na prova! (-20⏰)"
+        else:
+            self.energia -= 10
+            msg = "Você virou as costas. Ele gritou 'VOCÊ VAI REPROVAR!', o que te deixou super estressado... (-10⚡)"
+            
+        # Vai direto para o local depois do evento interno
+        if not self.verificar_game_over():
+            self.carregar_local(destino, imagem_destino)
+            self.atualizar_hud(msg)    
+
+    def spawnar_item_na_tela(self, nome_item, imagem_item):
+        """Gera o item usando um botão invisível com hover desativado corretamente"""
+        if hasattr(self, 'item_atual_tela') and self.item_atual_tela:
+            try:
+                self.item_atual_tela.destroy()
+            except Exception:
+                pass
+            self.item_atual_tela = None
+
+        import random
+        x_aleatorio = random.randint(50, 750)
+        y_aleatorio = random.randint(50, 550)
+
+        # CORREÇÃO: Removemos o hover_color="transparent" e colocamos hover=False!
+        # Mantemos text=" " e a font pequena para evitar o bug interno do _font.
+        if imagem_item:
+            self.item_atual_tela = ctk.CTkButton(
+                self.label_fundo, 
+                image=imagem_item, 
+                text=" ", 
+                font=("Segoe UI", 1),
+                width=45,
+                height=45,
+                corner_radius=0,
+                fg_color="transparent", 
+                hover=False, # DESLIGA o efeito do mouse sem dar erro no CustomTkinter!
+                command=lambda: self.item_encontrado(nome_item)
+            )
+        else:
+            self.item_atual_tela = ctk.CTkButton(
+                self.label_fundo, 
+                text="💾", 
+                font=("Segoe UI", 20),
+                width=45,
+                height=45,
+                corner_radius=0,
+                fg_color="transparent", 
+                hover=False, # DESLIGA o efeito do mouse aqui também
+                command=lambda: self.item_encontrado(nome_item)
+            )
+
+        self.item_atual_tela.place(x=x_aleatorio, y=y_aleatorio)
+
+    def item_encontrado(self, nome_item):
+        """Função chamada quando o jogador clica com sucesso no item escondido"""
+        if self.item_atual_tela:
+            self.item_atual_tela.destroy()
+            self.item_atual_tela = None
+
+        # Adiciona o item à lista do jogador
+        if hasattr(self, 'itens_encontrados'):
+            if nome_item not in self.itens_encontrados:
+                self.itens_encontrados.append(nome_item)
+        
+        # VERIFICA A VITÓRIA (Se ele pegou os 3 itens)
+        if len(self.itens_encontrados) >= 3:
+            # Chama a tela do SIGAA e encerra a jogabilidade!
+            self.final_vitoria()
+        else:
+            # Se ainda faltam itens, o jogo segue normalmente
+            msg_sucesso = f"🎉 INCRÍVEL! Você encontrou: {nome_item}! ({len(self.itens_encontrados)}/3 itens recuperados)"
+            self.atualizar_hud(msg_sucesso)
+
     def verificar_game_over(self):
         if self.energia <= 0:
             self.mostrar_tela_desmaio()
@@ -393,6 +566,30 @@ class JogoBSI:
         
         ctk.CTkLabel(self.janela, text="GAME OVER", font=("Impact", 80), text_color="#e74c3c").place(relx=0.5, rely=0.4, anchor="center")
         ctk.CTkLabel(self.janela, text=motivo, font=("Segoe UI", 24, "bold"), text_color="#ffffff").place(relx=0.5, rely=0.55, anchor="center")
+
+    def final_vitoria(self):
+        """Tela de vitória exibida quando o jogador encontra os 3 itens"""
+        for widget in self.janela.winfo_children():
+            widget.destroy()
+            
+        # Coloca a foto do SIGAA no fundo, ocupando a tela toda
+        if self.img_vitoria:
+            self.label_fundo = ctk.CTkLabel(self.janela, width=1220, height=700, image=self.img_vitoria, text="")
+        else:
+            self.label_fundo = ctk.CTkLabel(self.janela, width=1220, height=700, text="[FOTO DO SIGAA]", font=("Segoe UI", 30))
+        self.label_fundo.place(x=0, y=0)
+        
+        # Cria uma caixa de texto bonitona na parte de baixo da tela
+        caixa = ctk.CTkFrame(self.janela, width=800, height=220, fg_color="#0a120b", border_color="#2ecc71", border_width=4, corner_radius=15)
+        caixa.place(relx=0.5, rely=0.8, anchor="center") # Fica mais para baixo para não tapar a nota!
+        caixa.pack_propagate(False)
+        
+        ctk.CTkLabel(caixa, text="💻 COMMIT REALIZADO COM SUCESSO!", font=("Impact", 32), text_color="#2ecc71").pack(pady=(20, 10))
+        
+        texto_historia = "Você reuniu o Pen Drive, o Carregador e o Caderno a tempo! Você correu para o CEAGRI, compilou o código sem erros e o professor aprovou. Finalmente a nota saiu no SIGAA! Você sobreviveu a mais um dia na UFRPE."
+        ctk.CTkLabel(caixa, text=texto_historia, font=("Segoe UI", 16, "bold"), text_color="white", wraplength=700).pack(pady=10)
+        
+        ctk.CTkButton(caixa, text="Sair do Jogo", font=("Segoe UI", 16, "bold"), fg_color="#e74c3c", height=40, command=self.janela.quit).pack(pady=10)
 
     def rodar(self):
         self.janela.mainloop()
