@@ -125,7 +125,7 @@ class ConstrutorTelas:
             if predio_atual != predio_destino and local != loc_nome:
                 frame_loc = ctk.CTkFrame(self.painel_lateral, fg_color="transparent")
                 frame_loc.pack(pady=2, fill="x", padx=10)             
-                nome_formatado = loc_nome.replace(" (Entrada)", "").replace("Parada de ", "")
+                nome_formatado = loc_nome.replace(" (Entrada)", "")
                 ctk.CTkLabel(frame_loc, text=f"{nome_formatado}:", font=("Segoe UI", 11, "bold"), width=75, anchor="w").pack(side="left")           
                 ctk.CTkButton(frame_loc, text="🚶 A pé", width=50, height=22, font=("Segoe UI", 10), command=lambda n=loc_nome: self.janela.viajar(n, "pe")).pack(side="right", padx=2)
                 ctk.CTkButton(frame_loc, text="🚌 Ônibus", width=50, height=22, font=("Segoe UI", 10), fg_color="#27ae60", command=lambda n=loc_nome: self.janela.viajar(n, "onibus")).pack(side="right", padx=2)

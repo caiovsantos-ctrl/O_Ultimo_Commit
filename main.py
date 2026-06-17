@@ -35,7 +35,7 @@ class JogoBSI(ctk.CTk):
             "Peguei o BRT lotado espremido na porta. Quando finalmente desci na frente da UFRPE, o desespero bateu: "
             "o zíper da minha mochila estourou. Meu Pendrive com o código, meu caderno e meu carregador "
             "caíram em algum lugar do campus.\n\n"
-            "O professor no Departamento de Computação (DC) avisou: o prazo final é às 14h em ponto. "
+            "O professor avisou: o prazo final é às 14h em ponto. "
             "Se eu não recuperar tudo e chegar lá a tempo... é Game Over."
         )
         locais_do_campus = [

@@ -3,7 +3,7 @@ import random
 
 class GerenciadorBuscas:
     def __init__(self):
-        self.chance_sucesso = 0.80
+        self.chance_sucesso = 1.0
         self.custo_tempo = 10
         self.custo_energia = -5
 

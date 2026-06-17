@@ -29,7 +29,7 @@ class TelasTransicao:
             ctk.CTkLabel(self.janela, image=imagem_fundo, text="").place(x=0, y=0, relwidth=1, relheight=1)
         else:
             ctk.CTkLabel(self.janela, text="[🚶 Caminhando pelo campus...]", font=("Segoe UI", 24)).place(x=0, y=0, relwidth=1, relheight=1)      
-        caixa = ctk.CTkFrame(self.janela, width=550, height=220, fg_color="#0a120b", border_color="#e67e22", border_width=2, corner_radius=12)
+        caixa = ctk.CTkFrame(self.janela, width=550, height=240, fg_color="#0a120b", border_color="#e67e22", border_width=2, corner_radius=12)
         caixa.place(relx=0.5, rely=0.5, anchor="center")
         caixa.pack_propagate(False)      
         ctk.CTkLabel(caixa, text="🚶 CAMINHANDO SOB O SOL...", font=("Impact", 28), text_color="#e67e22").pack(pady=(15, 5))
