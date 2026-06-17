@@ -2,8 +2,8 @@ class Jogador:
     def __init__(self):
         self.energia = 50
         self.dinheiro = 15.00
-        self.tempo_minutos = 420  # 07:00 da manhã
-        self.prazo_final = 840    # 14:00 da tarde
+        self.tempo_minutos = 420  
+        self.prazo_final = 840    
         self.itens_encontrados = []
 
     def formatar_tempo(self) -> str:
