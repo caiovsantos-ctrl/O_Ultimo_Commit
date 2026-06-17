@@ -2,34 +2,27 @@ import os
 from PIL import Image, ImageFilter
 import customtkinter as ctk
 
+
 class GerenciadorMidia:
     def __init__(self):
         self.assets = {}
         self.pasta_imagens = "imagens" 
 
     def inicializar_todos_assets(self):
-        """Carrega e processa todas as imagens do jogo garantindo os tamanhos corretos"""
-        # 1. Carrega a imagem principal da Rural
+        """Carrega e processa todas as imagens do jogo garantindo os tamanhos corretos"""       
         caminho_base = os.path.join(self.pasta_imagens, "frente_rural.jpeg")
-        img_base_pil = None
-        
+        img_base_pil = None        
         if os.path.exists(caminho_base):
             img_base_pil = Image.open(caminho_base)
             self.assets["frente_rural"] = ctk.CTkImage(light_image=img_base_pil, size=(1220, 700))
         else:
             print("❌ Erro Crítico: 'frente_rural.jpeg' não foi encontrada na pasta imagens.")
-
-        # 2. SISTEMA DE SEGURANÇA PARA O DESFOQUE:
-        # Se você tiver um arquivo chamado 'borrado.png', ele usa. Se não tiver, ele gera via código!
         caminho_borrado = os.path.join(self.pasta_imagens, "borrado.png")
         if os.path.exists(caminho_borrado):
             self.assets["bg_borrado"] = ctk.CTkImage(light_image=Image.open(caminho_borrado), size=(1220, 700))
         elif img_base_pil:
-            # Desfoca a imagem base original programaticamente (Raio de desfoque: 15)
             img_borrada_pil = img_base_pil.filter(ImageFilter.GaussianBlur(radius=15))
             self.assets["bg_borrado"] = ctk.CTkImage(light_image=img_borrada_pil, size=(1220, 700))
-
-        # 3. Mapeamento dos cenários restantes e itens
         mapeamento_restante = {
             "Parada de Ônibus": "espera.jpeg",
             "RU": "fila_ru.jpeg",
@@ -45,12 +38,11 @@ class GerenciadorMidia:
             "Ed Física (Entrada)": "base_edf.jpeg",    
             "Ed Física (Sala)": "sala_edf.jpeg",
             "A Praça": "praca_edf.jpeg",
-            "vitoria": "sigaa.png",       # Quando vence (Consegue entregar no SIGAA/DC)
-            "desmaio": "desmaio.jpeg",       # Quando a energia zera
+            "vitoria": "sigaa.png",       
+            "desmaio": "desmaio.jpeg",       
             "game_over": "ceu.jpeg",  
             "Prédio Central": "comeco.jpeg"          
         }
-
         for nome_cenario, nome_arquivo in mapeamento_restante.items():
             caminho_completo = os.path.join(self.pasta_imagens, nome_arquivo)
             try:
