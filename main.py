@@ -13,6 +13,7 @@ from ui.carregar_imagem import GerenciadorMidia
 from ui.transicao import TelasTransicao
 from ui.interface_principal import ConstrutorTelas
 from ui.hud import PainelHUD
+from ui.cenarios import GerenciadorCenarios
 
 
 class JogoBSI(ctk.CTk):
@@ -34,6 +35,7 @@ class JogoBSI(ctk.CTk):
         self.midia.inicializar_todos_assets()
         self.telas_transicao = TelasTransicao(self)
         self.construtor_visual = ConstrutorTelas(self)
+        self.gerenciador_cenarios = GerenciadorCenarios()
 
         self.historia = (
             "Quarta-feira, 07:00 da manhã.\n\n"
@@ -106,7 +108,7 @@ class JogoBSI(ctk.CTk):
                 img = self.midia.obter_imagem("tela_onibus")
                 self.telas_transicao.mostrar_tela_onibus(msg, img, lambda: self.checar_chegada(destino))
             else:
-               self.telas.gerenciador_hud.atualizar_textos(self.jogador, msg)
+               self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, msg)
 
     def mover_interno(self, destino: str):
         msg, disparar_veterano = self.navegacao.mover_interno(self.jogador, destino)
@@ -121,13 +123,27 @@ class JogoBSI(ctk.CTk):
         else:
             if not self.verificar_fim_de_jogo():
                 self.carregar_cenario(destino)
-                self.telas.gerenciador_hud.atualizar_textos(self.jogador, msg)
+                self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, msg)
+
+    def processar_atalho(self):
+        # Chama a mecânica
+        msg, sucesso, valor = self.navegacao.usar_atalho(self.jogador)
+        
+        # Pega a imagem de transição (reutilizando a de caminhada)
+        img = self.midia.obter_imagem("tela_andando")
+        
+        # Usa o sistema de transição que você já tem
+        self.telas_transicao.mostrar_tela_pe(
+            f"🏃 ATALHO\n\n{msg}", 
+            img, 
+            lambda: self.carregar_cenario("RU")
+        )
 
     def resolver_evento_veterano(self, escolha: str, destino: str):
         msg = self.eventos.resolver_evento_veterano(self.jogador, escolha)
         if not self.verificar_fim_de_jogo():
             self.carregar_cenario(destino)
-            self.telas.gerenciador_hud.atualizar_textos(self.jogador, msg)
+            self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, msg)
 
     def checar_chegada(self, destino: str, tem_evento: bool = False, tipo_evento: str = "", item_local: str = None):
         if self.verificar_fim_de_jogo(): return
@@ -147,16 +163,16 @@ class JogoBSI(ctk.CTk):
         
         if not self.verificar_fim_de_jogo():
             self.checar_chegada(destino, tem_evento=False, item_local=item_local)
-            self.telas.gerenciador_hud.atualizar_textos(self.jogador, msg)
+            self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, msg)
 
     def acao_procurar(self):
         # Se o local não tem item OU se o item deste local já foi pego (virou None)
         if not hasattr(self, 'item_local_atual') or not self.item_local_atual:
-            self.jogador.passar_tempo(15)
-            self.jogador.modificar_energia(-10)
+            self.jogador.passar_tempo(10)
+            self.jogador.modificar_energia(-5)
             
             msg = "Você procurou com atenção, mas não encontrou nenhum item útil para o seu commit aqui."
-            self.telas.gerenciador_hud.atualizar_textos(self.jogador, msg)
+            self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, msg)
             self.verificar_fim_de_jogo()
             return
 
@@ -166,13 +182,19 @@ class JogoBSI(ctk.CTk):
         if sucesso:
             nome_asset = f"item_{self.item_local_atual.lower()}"
             img_item = self.midia.obter_imagem(nome_asset)
-            self.construtor_visual.spawnar_item_na_tela(self.item_local_atual, img_item, self.coletar_item)
+            self.gerenciador_cenarios.spawnar_item_na_tela(
+            self.construtor_visual.label_fundo, # O frame pai
+            self.construtor_visual.label_fundo.cget("image"), # A imagem do fundo
+            self.item_local_atual, 
+            img_item, 
+            self.coletar_item
+        )
             
-        self.telas.gerenciador_hud.atualizar_textos(self.jogador, msg)
+        self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, msg)
         self.verificar_fim_de_jogo()
 
     def coletar_item(self, nome_item: str):
-        self.construtor_visual.remover_item_da_tela()
+        self.gerenciador_cenarios.limpar_item_atual()
         
         if nome_item not in self.jogador.itens_encontrados:
             self.jogador.itens_encontrados.append(nome_item)
@@ -192,11 +214,11 @@ class JogoBSI(ctk.CTk):
             self.telas_transicao.final_vitoria(img_vitoria, lambda: sys.exit())
         else:
             msg_sucesso = f"🎉 INCRÍVEL! Você encontrou: {nome_item}! ({len(self.jogador.itens_encontrados)}/3 itens recuperados)"
-            self.telas.gerenciador_hud.atualizar_textos(self.jogador, msg_sucesso)
+            self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, msg_sucesso)
 
     def comprar_comida(self, local: str):
         msg, sucesso = self.sobrevivencia.comprar_comida(self.jogador, local)
-        self.telas.gerenciador_hud.atualizar_textos(self.jogador, msg)
+        self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, msg)
         self.verificar_fim_de_jogo()
 
     def verificar_fim_de_jogo(self) -> bool:

@@ -182,61 +182,15 @@ class ConstrutorTelas:
                 # Vincula as ações de viagem da sua main passando o destino e o meio correto
                 ctk.CTkButton(frame_loc, text="🚶 A pé", width=50, height=22, font=("Segoe UI", 10), command=lambda n=loc_nome: self.janela.viajar(n, "pe")).pack(side="right", padx=2)
                 ctk.CTkButton(frame_loc, text="🚌 Ônibus", width=50, height=22, font=("Segoe UI", 10), fg_color="#27ae60", command=lambda n=loc_nome: self.janela.viajar(n, "onibus")).pack(side="right", padx=2)
-
-    def spawnar_item_na_tela(self, nome_item, imagem_item, comando_coletar):
-        """Gera o item na tela com recorte perfeito usando Label clicável sem alterar o cursor"""
-        self.remover_item_da_tela()
-
-        import random
-        from PIL import Image
-
-        x_aleatorio = random.randint(50, 750)
-        y_aleatorio = random.randint(50, 550)
-
-        if imagem_item:
-            imagem_fundo_ctk = self.label_fundo.cget("image")
-
-            img_fundo_pil = (imagem_fundo_ctk._dark_image or imagem_fundo_ctk._light_image).convert("RGBA")
-            img_item_pil = (imagem_item._dark_image or imagem_item._light_image).convert("RGBA")
-
-            filtro = getattr(Image, 'Resampling', Image).LANCZOS
-
-            img_fundo_pil = img_fundo_pil.resize((1220, 700), filtro)
-            img_item_pil = img_item_pil.resize((45, 45), filtro)
-
-            caixa_recorte = (x_aleatorio, y_aleatorio, x_aleatorio + 45, y_aleatorio + 45)
-            fundo_recortado = img_fundo_pil.crop(caixa_recorte)
-
-            fundo_recortado.paste(img_item_pil, (0, 0), img_item_pil)
-
-            imagem_camuflada = ctk.CTkImage(light_image=fundo_recortado, dark_image=fundo_recortado, size=(45, 45))
-
-            self.item_atual_tela = ctk.CTkLabel(
-                self.label_fundo,
-                image=imagem_camuflada,
-                text="",
-                width=45, height=45,
-                fg_color="transparent", bg_color="transparent"
-                # Removido o cursor="hand2" para manter a dificuldade do jogo
-            )
-            self.item_atual_tela.bind("<Button-1>", lambda event: comando_coletar(nome_item))
-
-        else:
-            self.item_atual_tela = ctk.CTkLabel(
-                self.label_fundo, text="💾", font=("Segoe UI", 20),
-                width=45, height=45,
-                fg_color="transparent", bg_color="transparent"
-                # Removido o cursor="hand2"
-            )
-            self.item_atual_tela.bind("<Button-1>", lambda event: comando_coletar(nome_item))
-
-        self.item_atual_tela.place(x=x_aleatorio, y=y_aleatorio)
-
-    def remover_item_da_tela(self):
-        """Remove o item visualmente se o jogador mudar de cenário ou coletá-lo"""
-        if hasattr(self, 'item_atual_tela') and self.item_atual_tela:
-            try:
-                self.item_atual_tela.destroy()
-            except Exception:
-                pass
-            self.item_atual_tela = None
+                if loc_nome == "RU" and ("Lanchonete" in local or "CEAGRI (Entrada)" in local):
+                    ctk.CTkButton(
+                        frame_loc, 
+                        text="🏃 Atalho", 
+                        width=45, 
+                        height=22, 
+                        font=("Segoe UI", 10, "bold"), 
+                        fg_color="#c0392b", 
+                        hover_color="#962d22",
+                        command=self.janela.processar_atalho # Chamando a nova função na main
+                    ).pack(side="right", padx=2)
+    
