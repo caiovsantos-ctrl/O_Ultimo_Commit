@@ -9,25 +9,18 @@ class GerenciadorNavegacao:
         """Aplica os custos de caminhar e calcula chance de evento com Saguim"""
         jogador.passar_tempo(20)
         jogador.modificar_energia(-10)
-        
-        # 30% de chance de encontrar o Saguim no caminho
-        disparar_saguim = random.random() < 0.30
-        
+        disparar_saguim = random.random() < 0.30     
         msg = f"Você caminhou sob o sol escaldante da Rural até {destino}."
         return msg, disparar_saguim
 
     def viajar_onibus(self, jogador, destino: str) -> tuple[str, bool]:
         """Tenta viajar de ônibus cobrando a passagem e calculando o atraso"""
         if jogador.dinheiro < self.custo_onibus:
-            return "Sem dinheiro para o ônibus! Você vai ter que ir a pé.", False
-            
+            return "Sem dinheiro para o ônibus! Você vai ter que ir a pé.", False            
         jogador.modificar_dinheiro(-self.custo_onibus)
         jogador.modificar_energia(-2)
-        
-        # O ônibus na Rural é uma caixinha de surpresas
         atraso = random.choice([5, 10, 20, 30])
-        jogador.passar_tempo(atraso)
-        
+        jogador.passar_tempo(atraso)    
         msg = f"O ônibus atrasou {atraso} minutos, mas você chegou ao ponto de destino: {destino}."
         return msg, True
 
@@ -35,10 +28,7 @@ class GerenciadorNavegacao:
         """Movimentação rápida dentro do mesmo prédio"""
         jogador.passar_tempo(2)
         jogador.modificar_energia(-1)
-        
-        # 30% de chance de topar com um Veterano se estiver no CEAGRI
-        disparar_veterano = "CEAGRI" in destino and random.random() < 0.30
-        
+        disparar_veterano = "CEAGRI" in destino and random.random() < 0.30      
         msg = f"Você andou pelos corredores até {destino}."
         return msg, disparar_veterano
     
@@ -53,7 +43,7 @@ class GerenciadorNavegacao:
             return "Você passou pelo atalho como um vulto! Chegou rápido.", True, 0
         else:
             if jogador.dinheiro >= 3.00:              
-                perda = 3.00 # Valor a ser roubado
+                perda = 3.00 
                 jogador.modificar_dinheiro(-perda)
                 jogador.passar_tempo(10)
                 jogador.modificar_energia(-2)
