@@ -4,6 +4,7 @@ import random
 
 
 class GerenciadorCenarios:
+    """Gerencia os cenários do jogo, incluindo a exibição de itens camuflados e limpeza de itens anteriores"""
     def __init__(self):
         self.item_atual_tela = None
 
@@ -17,6 +18,7 @@ class GerenciadorCenarios:
             self.item_atual_tela = None
 
     def spawnar_item_na_tela(self, frame_pai, imagem_fundo_ctk, nome_item, imagem_item, comando_coletar):
+        """Posiciona um item de forma camuflada na tela, usando a imagem de fundo para criar um efeito de esconderijo"""
         x_aleatorio = random.randint(50, 750)
         y_aleatorio = random.randint(50, 550)
         if imagem_item:

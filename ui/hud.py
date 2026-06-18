@@ -2,6 +2,7 @@ import customtkinter as ctk
 
 
 class PainelHUD:
+    """Gerencia a construção e atualização do painel de HUD, exibindo informações do jogador e mensagens"""
     def __init__(self, frame_pai):
         self.parent = frame_pai
         self.lbl_tempo = None
@@ -11,13 +12,13 @@ class PainelHUD:
         self.lbl_local = None
 
     def formatar_tempo(self, minutos_totais) -> str:
-        """Converte minutos brutos para o formato de relógio HH:MM"""
+        """Converte minutos para o formato de relógio"""
         horas = minutos_totais // 60
         minutos = minutos_totais % 60
         return f"{horas:02d}:{minutos:02d}"
 
     def construir_hud(self, jogador, local_atual):
-        """Desenha os widgets na tela"""
+        """Constrói a interface do HUD com as informações iniciais do jogador e o local atual"""
         ctk.CTkLabel(self.parent, text="STATUS DO ALUNO", font=("Impact", 24), text_color="#ffffff").pack(pady=(15, 5))        
         self.lbl_tempo = ctk.CTkLabel(self.parent, text=f"⏰ Tempo: {self.formatar_tempo(jogador.tempo_minutos)} / 14:00", font=("Segoe UI", 14, "bold"), text_color="#e74c3c")
         self.lbl_tempo.pack(anchor="w", padx=20, pady=2)     
@@ -32,7 +33,7 @@ class PainelHUD:
         ctk.CTkLabel(self.parent, text=local_atual, font=("Segoe UI", 16, "bold"), text_color="#3498db").pack(pady=(0, 10))
         
     def atualizar_textos(self, jogador, mensagem=""):
-        """Atualiza a tela sem alterar as cores ou fontes originais"""
+        """Atualiza os textos do HUD com as informações atuais do jogador"""
         if self.lbl_tempo:
             self.lbl_tempo.configure(text=f"⏰ Tempo: {self.formatar_tempo(jogador.tempo_minutos)} / 14:00")
         if self.lbl_energia:

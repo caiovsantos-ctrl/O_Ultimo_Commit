@@ -1,4 +1,5 @@
 class Jogador:
+    """Representa o estado do jogador, incluindo energia, dinheiro, tempo e itens coletados"""
     def __init__(self):
         self.energia = 50
         self.dinheiro = 15.00
@@ -7,7 +8,7 @@ class Jogador:
         self.itens_encontrados = []
 
     def formatar_tempo(self) -> str:
-        """Converte os minutos totais no formato clássico de relógio HH:MM"""
+        """Converte os minutos totais no formato relógio"""
         horas = self.tempo_minutos // 60
         minutos = self.tempo_minutos % 60
         return f"{horas:02d}:{minutos:02d}"

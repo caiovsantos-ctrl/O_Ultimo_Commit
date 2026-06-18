@@ -1,9 +1,9 @@
 import customtkinter as ctk
 from .hud import PainelHUD
-from PIL import Image
 
 
 class ConstrutorTelas:
+    """Gerencia a construção e atualização das telas do jogo"""
     def __init__(self, janela_principal):
         self.janela = janela_principal 
         self.label_fundo = None
@@ -15,17 +15,18 @@ class ConstrutorTelas:
         self.lbl_mensagem = None
 
     def limpar_janela(self):
-        """Remove todos os elementos da janela para evitar sobreposição"""
+        """Remove todos os elementos da janela"""
         for widget in self.janela.winfo_children():
             widget.destroy()
 
     def formatar_tempo(self, minutos_totais) -> str:
-        """Converte minutos brutos para o formato de relógio HH:MM"""
+        """Converte minutos para o formato de relógio"""
         horas = minutos_totais // 60
         minutos = minutos_totais % 60
         return f"{horas:02d}:{minutos:02d}"
 
     def montar_tela_titulo(self, comando_entrar, img_fundo):
+        """Monta a tela de título do jogo, exibindo o nome, subtítulo e um botão para iniciar o jogo"""
         self.limpar_janela()
         if img_fundo:
             self.label_fundo = ctk.CTkLabel(self.janela, image=img_fundo, text="", width=1220, height=700)
@@ -54,6 +55,7 @@ class ConstrutorTelas:
         self.btn_entrar.place(relx=0.5, rely=0.6, anchor="center")
 
     def carregar_tela_introducao(self, img_fundo_borrada, historia_completa, comando_proximo):
+        """Monta a tela de introdução do jogo, exibindo a história inicial com um efeito de digitação e um botão para avançar"""
         self.tag_jogo.destroy()
         self.titulo_jogo.destroy()
         self.sub_jogo.destroy()
@@ -74,6 +76,7 @@ class ConstrutorTelas:
         self.digitar_letra()
 
     def digitar_letra(self):
+        """Exibe o texto da história letra por letra, criando um efeito de digitação"""
         if self.indice_texto < len(self.historia_texto):
             texto_atual = self.label_historia.cget("text")
             self.label_historia.configure(text=texto_atual + self.historia_texto[self.indice_texto])

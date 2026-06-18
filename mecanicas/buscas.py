@@ -2,13 +2,14 @@ import random
 
 
 class GerenciadorBuscas:
+    """Gerencia as ações de busca do jogador"""
     def __init__(self):
-        self.chance_sucesso = 1.0
+        self.chance_sucesso = 0.8
         self.custo_tempo = 10
         self.custo_energia = -5
 
     def procurar_item_no_local(self, jogador, item_do_local: str) -> tuple[str, bool]:
-        """Custa tempo e energia. Retorna se o item foi spawnado com sucesso"""
+        """Realiza a ação de procurar um item em um local específico, aplicando custos e verificando o resultado"""
         jogador.passar_tempo(self.custo_tempo)
         jogador.modificar_energia(self.custo_energia)
         if item_do_local in jogador.itens_encontrados:

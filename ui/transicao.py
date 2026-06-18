@@ -2,6 +2,7 @@ import customtkinter as ctk
 
 
 class TelasTransicao:
+    """Gerencia as telas de transição entre cenários, eventos e o final do jogo"""
     def __init__(self, janela_principal):
         self.janela = janela_principal
 
@@ -11,6 +12,7 @@ class TelasTransicao:
             widget.destroy()
     
     def mostrar_tela_onibus(self, msg, imagem_fundo, comando_continuar):
+        """Monta a tela de transição para o cenário do ônibus"""
         self.limpar_tela()      
         if imagem_fundo:
             ctk.CTkLabel(self.janela, image=imagem_fundo, text="").place(x=0, y=0, relwidth=1, relheight=1)
@@ -24,6 +26,7 @@ class TelasTransicao:
         ctk.CTkButton(caixa, text="DESCER NO PONTO ▶", font=("Segoe UI", 13, "bold"), fg_color="#27ae60", hover_color="#218c4e", command=comando_continuar).pack(pady=10)
 
     def mostrar_tela_pe(self, msg, imagem_fundo, comando_continuar):
+        """Monta a tela de transição para o cenário de caminhada"""
         self.limpar_tela()        
         if imagem_fundo:
             ctk.CTkLabel(self.janela, image=imagem_fundo, text="").place(x=0, y=0, relwidth=1, relheight=1)
@@ -37,6 +40,7 @@ class TelasTransicao:
         ctk.CTkButton(caixa, text="CHEGAR AO DESTINO ▶", font=("Segoe UI", 13, "bold"), fg_color="#d35400", hover_color="#a84300", command=comando_continuar).pack(pady=10)
 
     def mostrar_evento_saguim(self, imagem_fundo, comando_tempo, comando_energia):
+        """Monta a tela de evento do saguim"""
         self.limpar_tela()       
         if imagem_fundo:
             ctk.CTkLabel(self.janela, width=1220, height=700, image=imagem_fundo, text="").place(x=0, y=0)        
@@ -49,6 +53,7 @@ class TelasTransicao:
         ctk.CTkButton(caixa, text="Passar correndo (-15⚡)", font=("Segoe UI", 14, "bold"), fg_color="#e74c3c", height=40, command=comando_energia).pack(pady=5)
 
     def mostrar_evento_veterano(self, imagem_fundo, comando_ouvir, comando_ignorar):
+        """Monta a tela de evento do veterano no CEAGRI"""
         self.limpar_tela()      
         if imagem_fundo:
             img_pil = imagem_fundo._light_image 
@@ -64,6 +69,7 @@ class TelasTransicao:
         ctk.CTkButton(caixa, text="Ignorar e sair andando (-10⚡)", font=("Segoe UI", 14, "bold"), fg_color="#e74c3c", height=40, command=comando_ignorar).pack(pady=5)
 
     def mostrar_tela_desmaio(self, imagem_fundo, comando_continuar):
+        """Monta a tela de transição para o cenário de desmaio por exaustão"""
         self.limpar_tela()       
         if imagem_fundo:
             ctk.CTkLabel(self.janela, width=1220, height=700, image=imagem_fundo, text="").place(x=0, y=0)
@@ -76,6 +82,7 @@ class TelasTransicao:
         ctk.CTkButton(caixa, text="CONTINUAR ▶", font=("Segoe UI", 12, "bold"), fg_color="#e74c3c", hover_color="#c0392b", command=comando_continuar).pack(pady=5)
         
     def mostrar_game_over(self, motivo, imagem_fundo):
+        """Monta a tela de Game Over"""
         self.limpar_tela()       
         if imagem_fundo:
             ctk.CTkLabel(self.janela, width=1220, height=700, image=imagem_fundo, text="").place(x=0, y=0)
@@ -85,6 +92,7 @@ class TelasTransicao:
         ctk.CTkLabel(self.janela, text=motivo, font=("Segoe UI", 24, "bold"), text_color="#ffffff").place(relx=0.5, rely=0.55, anchor="center")
 
     def final_vitoria(self, imagem_fundo, comando_sair):
+        """Monta a tela de vitória final do jogo"""
         self.limpar_tela()        
         if imagem_fundo:
             ctk.CTkLabel(self.janela, width=1220, height=700, image=imagem_fundo, text="").place(x=0, y=0)

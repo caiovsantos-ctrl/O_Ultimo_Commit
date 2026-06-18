@@ -1,4 +1,5 @@
 class GerenciadorSobrevivencia:
+    """Gerencia as ações de sobrevivência do jogador, incluindo compra de comida"""
     def __init__(self):
         self.cardapio = {
             "RU": {"preco": 3.50, "tempo": 50, "energia": 50, "sucesso_msg": "Você mofou na fila do RU, mas conseguiu! (+50⚡, -50⏰)"},
@@ -6,7 +7,7 @@ class GerenciadorSobrevivencia:
         }
 
     def comprar_comida(self, jogador, tipo: str) -> tuple[str, bool]:
-        """Processa a compra de comida baseada no cardápio"""
+        """Permite ao jogador comprar comida para recuperar energia, aplicando custos de tempo e dinheiro"""
         if tipo not in self.cardapio:
             return "Tipo de comida inválido.", False          
         info = self.cardapio[tipo]        

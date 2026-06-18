@@ -2,6 +2,7 @@ import random
 
 
 class GerenciadorNavegacao:
+    """Gerencia as ações de navegação do jogador, incluindo custos e eventos aleatórios"""
     def __init__(self):
         self.custo_onibus = 2.25
 
@@ -33,10 +34,7 @@ class GerenciadorNavegacao:
         return msg, disparar_veterano
     
     def usar_atalho(self, jogador) -> tuple[str, bool, int]:
-        """
-        Retorna (mensagem, sucesso_bool, perda_dinheiro)
-        Sucesso (6-10): Chega rápido. Falha (1-5): Perde dinheiro.
-        """
+        """Tenta usar um atalho perigoso, com chance de assalto ou perda de tempo e energia"""
         resultado = random.randint(1, 10)
         if resultado > 6:
             jogador.passar_tempo(5)

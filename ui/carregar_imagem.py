@@ -4,6 +4,7 @@ import customtkinter as ctk
 
 
 class GerenciadorMidia:
+    """Gerencia o carregamento e acesso às imagens do jogo"""
     def __init__(self):
         self.assets = {}
         self.pasta_imagens = "imagens" 
@@ -15,8 +16,6 @@ class GerenciadorMidia:
         if os.path.exists(caminho_base):
             img_base_pil = Image.open(caminho_base)
             self.assets["frente_rural"] = ctk.CTkImage(light_image=img_base_pil, size=(1220, 700))
-        else:
-            print("❌ Erro Crítico: 'frente_rural.jpeg' não foi encontrada na pasta imagens.")
         caminho_borrado = os.path.join(self.pasta_imagens, "borrado.png")
         if os.path.exists(caminho_borrado):
             self.assets["bg_borrado"] = ctk.CTkImage(light_image=Image.open(caminho_borrado), size=(1220, 700))
@@ -60,4 +59,5 @@ class GerenciadorMidia:
                 self.assets[nome_cenario] = None
 
     def obter_imagem(self, nome_cenario: str):
+        """Retorna a imagem processada para o cenário solicitado, ou None se não estiver disponível"""
         return self.assets.get(nome_cenario, None)

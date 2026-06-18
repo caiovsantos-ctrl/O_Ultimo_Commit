@@ -1,4 +1,5 @@
 class GerenciadorEventos:
+    """Gerencia os eventos aleatórios que podem ocorrer durante o jogo"""
     def __init__(self):
         self.penalidade_tempo_saguim = 15
         self.penalidade_energia_saguim = -8
@@ -14,7 +15,7 @@ class GerenciadorEventos:
         return "Você correu com tudo! O saguim pulou na sua direção, te deu um susto e você ficou exausto. (-8⚡)"
 
     def resolver_evento_veterano(self, jogador, escolha: str) -> str:
-        """Aplica o resultado da decisão com o Veterano tagarela no corredor"""
+        """Aplica o resultado da decisão com o Veterano no corredor"""
         if escolha == "ouvir":
             jogador.passar_tempo(self.penalidade_tempo_veterano)
             return "Ele falou por 20 minutos seguidos sem respirar... Pelo menos você descobriu que não cai Fluxogramas na prova! (-20⏰)"      
