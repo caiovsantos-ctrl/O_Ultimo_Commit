@@ -24,23 +24,32 @@ class GerenciadorMidia:
             self.assets["bg_borrado"] = ctk.CTkImage(light_image=img_borrada_pil, size=(1220, 700))
         mapeamento_restante = {
             "Parada de Ônibus": "espera.jpeg",
+            "parada chuva": "espera_chuva.png",
             "RU": "fila_ru.jpeg",
+            "ru chuva": "ru_chuva.png",
             "Lanchonete": "lanchonete.jpeg",
+            "lanchonete chuva": "lanchonete_chuva.png",
             "item_caderno": "caderno.png",
             "item_pendrive": "pendrive.png",
-            "tela_andando": "andar.jpeg",       
+            "tela_andando": "andar.jpeg", 
+            "tela pe chuva": "andar_chuva.png",
             "tela_onibus": "bus.jpeg",
+            "tela onibus chuva": "bus_chuva.png",
             "item_carregador": "carregador.png",
-            "CEAGRI (Entrada)": "frente_ceaagri.jpeg",       
+            "CEAGRI (Entrada)": "frente_ceaagri.jpeg",  
+            "ceaagri chuva": "frente_ceagri_chuva.png",    
             "CEAGRI (Sala de Aula)": "sala_ceagri.jpeg",      
             "CEAGRI (PCs)": "pc.jpeg",       
-            "Ed Física (Entrada)": "base_edf.jpeg",    
+            "Ed Física (Entrada)": "base_edf.jpeg", 
+            "edf chuva": "base_edf_chuva.png",
             "Ed Física (Sala)": "sala_edf.jpeg",
             "A Praça": "praca_edf.jpeg",
+            "praca chuva": "praca_edf_chuva.png",
             "vitoria": "sigaa.png",       
             "desmaio": "desmaio.jpeg",       
             "game_over": "ceu.jpeg",  
-            "Prédio Central": "comeco.jpeg"          
+            "Prédio Central": "comeco.jpeg", 
+            "predio chuva": "comeco_chuva.png"        
         }
         for nome_cenario, nome_arquivo in mapeamento_restante.items():
             caminho_completo = os.path.join(self.pasta_imagens, nome_arquivo)
@@ -49,7 +58,7 @@ class GerenciadorMidia:
                     img_pil = Image.open(caminho_completo)
                     if "item_" in nome_cenario:
                         self.assets[nome_cenario] = ctk.CTkImage(light_image=img_pil, size=(45, 45))
-                    elif "tela_" in nome_cenario or nome_cenario in ["vitoria", "desmaio", "game_over"]:
+                    elif "tela" in nome_cenario or nome_cenario in ["vitoria", "desmaio", "game_over"]:
                         self.assets[nome_cenario] = ctk.CTkImage(light_image=img_pil, size=(1220, 700))
                     else:
                         self.assets[nome_cenario] = ctk.CTkImage(light_image=img_pil, size=(900, 700))

@@ -1,3 +1,5 @@
+import random
+
 class Jogador:
     """Representa o estado do jogador, incluindo energia, dinheiro, tempo e itens coletados"""
     def __init__(self):
@@ -6,6 +8,33 @@ class Jogador:
         self.tempo_minutos = 420  
         self.prazo_final = 840    
         self.itens_encontrados = []
+        
+        # Sorteia o início da chuva para algum momento entre 07:30 (450) e 11:00 (660)
+        self.inicio_chuva = random.randint(450, 660)
+        
+        # Sorteia a duração exata da chuva com base nos períodos definidos
+        duracao_chuva = random.choice([30, 60, 120, 150])
+        self.fim_chuva = self.inicio_chuva + duracao_chuva
+        
+        # Controle de mensagens de transição do clima
+        self.avisou_inicio_chuva = False
+        self.avisou_fim_chuva = False
+
+    def esta_chovendo(self) -> bool:
+        """Verifica se o relógio atual do jogo está dentro do período de chuva"""
+        return self.inicio_chuva <= self.tempo_minutos <= self.fim_chuva
+
+    def checar_alertas_clima(self) -> str:
+        """Gera uma mensagem extra caso o clima tenha acabado de mudar"""
+        if self.esta_chovendo() and not self.avisou_inicio_chuva:
+            self.avisou_inicio_chuva = True
+            return "\n\n⛈️ O TEMPO FECHOU! Começou a chover forte na Rural."
+        
+        if self.tempo_minutos > self.fim_chuva and not self.avisou_fim_chuva:
+            self.avisou_fim_chuva = True
+            return "\n\n⛅ A chuva parou! O clima voltou ao normal."
+            
+        return ""
 
     def formatar_tempo(self) -> str:
         """Converte os minutos totais no formato relógio"""
@@ -19,7 +48,7 @@ class Jogador:
 
     def modificar_dinheiro(self, quantidade: float):
         """Adiciona ou subtrai dinheiro da carteira"""
-        self.dinheiro += quantidade
+        self.dinheiro += float(quantidade)
 
     def passar_tempo(self, minutos: int):
         """Avança o relógio do jogo"""

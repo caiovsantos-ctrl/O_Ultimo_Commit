@@ -71,13 +71,30 @@ class JogoBSI(ctk.CTk):
         self.carregar_cenario("Prédio Central")
 
     def carregar_cenario(self, local: str, item_do_local: str = None):
-        """Carrega o cenário solicitado, exibindo o item camuflado se tiver"""
+        """Carrega o cenário solicitado, exibindo o item camuflado e controlando o clima dinâmico."""
         if self.verificar_fim_de_jogo(): 
             return     
         if item_do_local is None:
             item_do_local = self.distribuicao_itens.get(local, None)      
         self.item_local_atual = item_do_local 
-        foto_fundo = self.midia.obter_imagem(local)     
+
+        # Mapeamento estrito das imagens com chuva
+        mapa_chuva = {
+            "Parada de Ônibus": "parada chuva",
+            "RU": "ru chuva",
+            "Lanchonete": "lanchonete chuva",
+            "CEAGRI (Entrada)": "ceaagri chuva",
+            "Ed Física (Entrada)": "edf chuva",
+            "A Praça": "praca chuva",
+            "Prédio Central": "predio chuva"
+        }
+        
+        if self.jogador.esta_chovendo() and local in mapa_chuva:
+            nome_asset_fundo = mapa_chuva[local]
+        else:
+            nome_asset_fundo = local
+
+        foto_fundo = self.midia.obter_imagem(nome_asset_fundo)     
         self.construtor_visual.desenhar_cenario_completo(
             local, 
             item_do_local, 
@@ -88,18 +105,24 @@ class JogoBSI(ctk.CTk):
         )
 
     def viajar(self, destino: str, meio: str):
-        """Processa a ação de viajar para um novo local"""
         if meio == "pe":
-            msg, evento = self.navegacao.viajar_a_pe(self.jogador, destino)
-            img = self.midia.obter_imagem("tela_andando")
-            self.telas_transicao.mostrar_tela_pe(msg, img, lambda: self.checar_chegada(destino, evento, "saguim"))
+            msg_viagem, evento = self.navegacao.viajar_a_pe(self.jogador, destino)
+            texto_tela = msg_viagem + self.jogador.checar_alertas_clima() # Junta o aviso de chuva se houver
+            
+            img_nome = "tela pe chuva" if self.jogador.esta_chovendo() else "tela_andando"
+            img = self.midia.obter_imagem(img_nome)
+            
+            self.telas_transicao.mostrar_tela_pe(texto_tela, img, lambda: self.checar_chegada(destino, evento, "saguim"))
         else:
-            msg, sucesso = self.navegacao.viajar_onibus(self.jogador, destino)
+            msg_viagem, sucesso = self.navegacao.viajar_onibus(self.jogador, destino)
+            texto_tela = msg_viagem + self.jogador.checar_alertas_clima()
+            
             if sucesso:
-                img = self.midia.obter_imagem("tela_onibus")
-                self.telas_transicao.mostrar_tela_onibus(msg, img, lambda: self.checar_chegada(destino))
+                img_nome = "tela onibus chuva" if self.jogador.esta_chovendo() else "tela_onibus"
+                img = self.midia.obter_imagem(img_nome)
+                self.telas_transicao.mostrar_tela_onibus(texto_tela, img, lambda: self.checar_chegada(destino))
             else:
-               self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, msg)
+               self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, texto_tela)
 
     def mover_interno(self, destino: str):
         """Processa a ação de se mover internamente dentro do mesmo local"""
@@ -117,14 +140,18 @@ class JogoBSI(ctk.CTk):
                 self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, msg)
 
     def processar_atalho(self):
-        """Processa a ação de usar um atalho para se deslocar rapidamente, com risco de eventos aleatórios"""
-        msg, sucesso, valor = self.navegacao.usar_atalho(self.jogador)
-        img = self.midia.obter_imagem("tela_andando")
+        msg_viagem, sucesso, valor = self.navegacao.usar_atalho(self.jogador)
+        texto_tela = f"🏃 ATALHO\n\n{msg_viagem}" + self.jogador.checar_alertas_clima()
+        
+        img_nome = "tela pe chuva" if self.jogador.esta_chovendo() else "tela_andando"
+        img = self.midia.obter_imagem(img_nome)
+        
         self.telas_transicao.mostrar_tela_pe(
-            f"🏃 ATALHO\n\n{msg}", 
+            texto_tela, 
             img, 
             lambda: self.carregar_cenario("RU")
         )
+
     def resolver_evento_veterano(self, escolha: str, destino: str):
         """Processa a escolha do jogador no evento do veterano e suas consequências"""
         msg = self.eventos.resolver_evento_veterano(self.jogador, escolha)
@@ -137,7 +164,8 @@ class JogoBSI(ctk.CTk):
         if self.verificar_fim_de_jogo(): 
             return
         if tem_evento and tipo_evento == "saguim":
-            img = self.midia.obter_imagem("tela_andando")
+            nome_img_saguim = "tela pe chuva" if self.jogador.esta_chovendo() else "tela_andando"
+            img = self.midia.obter_imagem(nome_img_saguim)
             self.telas_transicao.mostrar_evento_saguim(img, 
                 lambda: self.resolver_evento("saguim", "tempo", destino, item_local),
                 lambda: self.resolver_evento("saguim", "energia", destino, item_local))
