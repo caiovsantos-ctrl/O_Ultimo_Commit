@@ -99,11 +99,20 @@ class ConstrutorTelas:
         self.gerenciador_hud = PainelHUD(self.painel_lateral)
         self.gerenciador_hud.construir_hud(jogador, local)
         item_alvo = item_do_local if item_do_local else local
-        ctk.CTkButton(self.painel_lateral, text="🔍 Procurar Itens (-10m / -5⚡)", height=32, fg_color="#1e4620", hover_color="#2e6f33", command=comando_procurar).pack(pady=5, padx=20, fill="x")
+        ctk.CTkButton(self.painel_lateral, text="🔍 Procurar Itens (-10m / -5⚡)", height=32, fg_color="#1e4620", hover_color="#2e6f33", command=comando_procurar).pack(pady=5, padx=20, fill="x")        
         if "RU" in local:
             ctk.CTkButton(self.painel_lateral, text="🍔 Comer no RU (R$ 3.50 | +50 min)", fg_color="#2980b9", command=lambda: self.janela.comprar_comida("RU")).pack(pady=5, padx=20, fill="x")
         elif "Lanchonete" in local:
             ctk.CTkButton(self.painel_lateral, text="🍔 Comprar Salgado (R$ 7.00 | +10 min)", fg_color="#2980b9", command=lambda: self.janela.comprar_comida("Lanchonete")).pack(pady=5, padx=20, fill="x")
+        locais_venda = ["Parada de Ônibus", "A Praça", "Ed Física (Entrada)"]
+        if local in locais_venda and jogador.trufas > 0:
+            ctk.CTkButton(
+                self.painel_lateral, 
+                text=f"🍬 Vender Trufa (R$ 1.50 | -30m / -10⚡)", 
+                fg_color="#e67e22", 
+                hover_color="#d35400",
+                command=lambda: self.janela.acao_vender_trufa(local)
+            ).pack(pady=5, padx=20, fill="x")
         if "CEAGRI" in local:
             ctk.CTkLabel(self.painel_lateral, text="🚪 Explorar CEAGRI 2:", font=("Segoe UI", 13, "bold"), text_color="#9b59b6").pack(pady=(10, 2))        
             if local != "CEAGRI (Entrada)":
@@ -119,7 +128,7 @@ class ConstrutorTelas:
             if local != "Ed Física (Sala)":
                 ctk.CTkButton(self.painel_lateral, text="Ir para Sala de Ed Física", height=25, fg_color="#d35400", command=lambda: self.janela.    mover_interno("Ed Física (Sala)")).pack(pady=2, padx=30, fill="x")
             if local != "A Praça":
-                ctk.CTkButton(self.painel_lateral, text="Ir para a Praça", height=25, fg_color="#d35400", command=lambda: self.janela.mover_interno("A Praça")).pack(pady=2, padx=30, fill="x")
+                ctk.CTkButton(self.painel_lateral, text="Ir para a Praça", height=25, fg_color="#d35400", command=lambda: self.janela.mover_interno("A Praça")).pack(pady=2, padx=30, fill="x")     
         ctk.CTkLabel(self.painel_lateral, text="Viajar para outro Prédio:", font=("Segoe UI", 13, "bold")).pack(pady=(10, 2))      
         locais_externos = ["RU", "Prédio Central", "CEAGRI (Entrada)", "Ed Física (Entrada)", "Lanchonete", "Parada de Ônibus"]
         for loc_nome in locais_externos:

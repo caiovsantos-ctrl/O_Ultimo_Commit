@@ -77,8 +77,6 @@ class JogoBSI(ctk.CTk):
         if item_do_local is None:
             item_do_local = self.distribuicao_itens.get(local, None)      
         self.item_local_atual = item_do_local 
-
-        # Mapeamento estrito das imagens com chuva
         mapa_chuva = {
             "Parada de Ônibus": "parada chuva",
             "RU": "ru chuva",
@@ -88,12 +86,28 @@ class JogoBSI(ctk.CTk):
             "A Praça": "praca chuva",
             "Prédio Central": "predio chuva"
         }
-        
-        if self.jogador.esta_chovendo() and local in mapa_chuva:
-            nome_asset_fundo = mapa_chuva[local]
+        mapa_escuro = {
+            "CEAGRI (Sala de Aula)": "ceagri sala escuro",
+            "CEAGRI (PCs)": "ceagri pcs escuro",
+            "Ed Física (Sala)": "edf sala escuro"
+        }
+        nome_asset_fundo = None      
+        if self.jogador.esta_sem_energia():
+            for sala_chave, asset_escuro in mapa_escuro.items():
+                if sala_chave == local or sala_chave in local:
+                    nome_asset_fundo = asset_escuro
+                    break
+        if nome_asset_fundo is None:
+            if self.jogador.esta_chovendo() and local in mapa_chuva:
+                nome_asset_fundo = mapa_chuva[local]
+            else:
+                nome_asset_fundo = local
+        foto_fundo = self.midia.obter_imagem(nome_asset_fundo)
+        locais_permitidos_venda = ["Parada de Ônibus", "Ed Física (Entrada)"]
+        if local in locais_permitidos_venda and self.jogador.trufas > 0:
+            comando_vender = self.acao_vender_trufa
         else:
-            nome_asset_fundo = local
-
+            comando_vender = None
         foto_fundo = self.midia.obter_imagem(nome_asset_fundo)     
         self.construtor_visual.desenhar_cenario_completo(
             local, 
@@ -107,16 +121,13 @@ class JogoBSI(ctk.CTk):
     def viajar(self, destino: str, meio: str):
         if meio == "pe":
             msg_viagem, evento = self.navegacao.viajar_a_pe(self.jogador, destino)
-            texto_tela = msg_viagem + self.jogador.checar_alertas_clima() # Junta o aviso de chuva se houver
-            
+            texto_tela = msg_viagem + self.jogador.checar_alertas_clima()            
             img_nome = "tela pe chuva" if self.jogador.esta_chovendo() else "tela_andando"
-            img = self.midia.obter_imagem(img_nome)
-            
+            img = self.midia.obter_imagem(img_nome)           
             self.telas_transicao.mostrar_tela_pe(texto_tela, img, lambda: self.checar_chegada(destino, evento, "saguim"))
         else:
             msg_viagem, sucesso = self.navegacao.viajar_onibus(self.jogador, destino)
-            texto_tela = msg_viagem + self.jogador.checar_alertas_clima()
-            
+            texto_tela = msg_viagem + self.jogador.checar_alertas_clima()           
             if sucesso:
                 img_nome = "tela onibus chuva" if self.jogador.esta_chovendo() else "tela_onibus"
                 img = self.midia.obter_imagem(img_nome)
@@ -141,11 +152,9 @@ class JogoBSI(ctk.CTk):
 
     def processar_atalho(self):
         msg_viagem, sucesso, valor = self.navegacao.usar_atalho(self.jogador)
-        texto_tela = f"🏃 ATALHO\n\n{msg_viagem}" + self.jogador.checar_alertas_clima()
-        
+        texto_tela = f"🏃 ATALHO\n\n{msg_viagem}" + self.jogador.checar_alertas_clima()      
         img_nome = "tela pe chuva" if self.jogador.esta_chovendo() else "tela_andando"
-        img = self.midia.obter_imagem(img_nome)
-        
+        img = self.midia.obter_imagem(img_nome)     
         self.telas_transicao.mostrar_tela_pe(
             texto_tela, 
             img, 
@@ -224,6 +233,14 @@ class JogoBSI(ctk.CTk):
         msg, sucesso = self.sobrevivencia.comprar_comida(self.jogador, local)
         self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, msg)
         self.verificar_fim_de_jogo()
+
+    def acao_vender_trufa(self, local_venda: str):
+        """Executa a ação de venda de trufas e garante que a mensagem fique na tela"""
+        msg = self.jogador.vender_trufas()
+        if self.verificar_fim_de_jogo():
+            return
+        self.carregar_cenario(local_venda)
+        self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, msg)
 
     def verificar_fim_de_jogo(self) -> bool:
         """Checa se o jogo chegou a um estado de vitória, derrota por desmaio ou derrota por tempo, e exibe a tela correspondente"""

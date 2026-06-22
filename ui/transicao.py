@@ -35,7 +35,7 @@ class TelasTransicao:
         caixa = ctk.CTkFrame(self.janela, width=550, height=240, fg_color="#0a120b", border_color="#e67e22", border_width=2, corner_radius=12)
         caixa.place(relx=0.5, rely=0.5, anchor="center")
         caixa.pack_propagate(False)      
-        ctk.CTkLabel(caixa, text="🚶 CAMINHANDO SOB O SOL...", font=("Impact", 28), text_color="#e67e22").pack(pady=(15, 5))
+        ctk.CTkLabel(caixa, text="🚶 CAMINHANDO PELO CAMPUS...", font=("Impact", 28), text_color="#e67e22").pack(pady=(15, 5))
         ctk.CTkLabel(caixa, text=msg, font=("Segoe UI", 14, "bold"), text_color="#ffffff", wraplength=500).pack(pady=10)      
         ctk.CTkButton(caixa, text="CHEGAR AO DESTINO ▶", font=("Segoe UI", 13, "bold"), fg_color="#d35400", hover_color="#a84300", command=comando_continuar).pack(pady=10)
 

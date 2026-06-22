@@ -6,35 +6,29 @@ class GerenciadorNavegacao:
         self.custo_onibus = 2.25
 
     def viajar_a_pe(self, jogador, destino: str) -> tuple[str, bool]:
-        disparar_saguim = random.random() < 0.30     
-        
-        jogador.passar_tempo(20) # Avança o tempo base primeiro
-        
+        disparar_saguim = random.random() < 0.30            
+        jogador.passar_tempo(20)       
         if jogador.esta_chovendo():
-            jogador.passar_tempo(15) # Penalidade de tempo
-            jogador.modificar_energia(-15) # Penalidade de energia maior
+            jogador.passar_tempo(15) 
+            jogador.modificar_energia(-15) 
             msg = f"Debaixo de um temporal, você caminhou até {destino}. A lama e as poças te atrasaram muito!"
         else:
             jogador.modificar_energia(-10)
-            msg = f"Você caminhou sob o sol escaldante da Rural até {destino}."
-            
+            msg = f"Você caminhou sob o sol escaldante da Rural até {destino}."           
         return msg, disparar_saguim
 
     def viajar_onibus(self, jogador, destino: str) -> tuple[str, bool]:
         if jogador.dinheiro < self.custo_onibus:
-            return "Sem dinheiro para o ônibus! Você vai ter que ir a pé.", False            
-            
+            return "Sem dinheiro para o ônibus! Você vai ter que ir a pé.", False                      
         jogador.modificar_dinheiro(-self.custo_onibus)
         jogador.modificar_energia(-2)
         atraso = random.choice([5, 10, 20, 30])
-        jogador.passar_tempo(atraso) # Avança o tempo primeiro
-        
+        jogador.passar_tempo(atraso)       
         if jogador.esta_chovendo():
-            jogador.passar_tempo(15) # Mais atraso pela chuva
+            jogador.passar_tempo(15) 
             msg = f"A chuva alagou o campus. O circular demorou uma eternidade e atrasou {atraso + 15} minutos até {destino}."
         else:
-            msg = f"O ônibus atrasou {atraso} minutos, mas você chegou ao ponto de destino: {destino}."
-            
+            msg = f"O ônibus atrasou {atraso} minutos, mas você chegou ao ponto de destino: {destino}."           
         return msg, True
 
     def mover_interno(self, jogador, destino: str) -> tuple[str, bool]:
@@ -45,10 +39,8 @@ class GerenciadorNavegacao:
         return msg, disparar_veterano
     
     def usar_atalho(self, jogador) -> tuple[str, bool, int]:
-        resultado = random.randint(1, 10)
-        
-        jogador.passar_tempo(5) # Avança o tempo base para checar se fechou o tempo no caminho
-        
+        resultado = random.randint(1, 10)     
+        jogador.passar_tempo(5)        
         if jogador.esta_chovendo():
             if resultado > 7:
                 jogador.passar_tempo(5)
