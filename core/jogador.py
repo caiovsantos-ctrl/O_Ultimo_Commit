@@ -23,6 +23,8 @@ class Jogador:
             self.fim_energia = -1
         self.avisou_queda_energia = False
         self.avisou_volta_energia = False
+        self.fim_efeito_energetico = -1
+        self.avisou_fim_energetico = True
 
     def esta_chovendo(self) -> bool:
         """Verifica se o relógio atual do jogo está dentro do período de chuva"""
@@ -36,23 +38,22 @@ class Jogador:
 
     def checar_alertas_clima(self) -> str:
         """Gera as mensagens de transição para clima e energia"""
-        mensagem = ""
-        
+        mensagem = ""        
         if self.esta_chovendo() and not self.avisou_inicio_chuva:
             self.avisou_inicio_chuva = True
-            mensagem += "\n\n⛈️ O TEMPO FECHOU! Começou a chover forte na Rural."
-        
+            mensagem += "\n\n⛈️ O TEMPO FECHOU! Começou a chover forte na Rural."        
         if self.tempo_minutos > self.fim_chuva and not self.avisou_fim_chuva:
             self.avisou_fim_chuva = True
             mensagem += "\n\n⛅ A chuva parou! O clima voltou ao normal."
-
         if self.esta_sem_energia() and not self.avisou_queda_energia:
             self.avisou_queda_energia = True
-            mensagem += "\n\n🔌 A ENERGIA CAIU! Algumas salas estão no escuro."
-            
+            mensagem += "\n\n🔌 A ENERGIA CAIU! Algumas salas estão no escuro."           
         if self.vai_ter_queda and self.tempo_minutos > self.fim_energia and not self.avisou_volta_energia:
             self.avisou_volta_energia = True
-            mensagem += "\n\n💡 A energia voltou! Tudo iluminado novamente."      
+            mensagem += "\n\n💡 A energia voltou! Tudo iluminado novamente."     
+        if not self.avisou_fim_energetico and self.tempo_minutos >= self.fim_efeito_energetico:
+            self.avisou_fim_energetico = True
+            mensagem += "\n\n🥱 O efeito do Energético passou! Você voltou ao seu ritmo normal."
         return mensagem
 
     def formatar_tempo(self) -> str:
@@ -90,6 +91,15 @@ class Jogador:
         self.modificar_energia(-10)
         self.trufas -= quantidade_vendida
         return f"Você passou 30 minutos tentando vender suas trufas.\nResultado: Vendeu {quantidade_vendida} trufas e ganhou R$ {faturamento:.2f}.\nGastou 10 de energia. Restam {self.trufas} trufas."
+
+    def tem_efeito_energetico(self) -> bool:
+        """Retorna True se o jogador ainda estiver sob o efeito do energético"""
+        return self.tempo_minutos <= self.fim_efeito_energetico
+
+    def consumir_energetico(self):
+        """Ativa o efeito de foco por 40 minutos"""
+        self.fim_efeito_energetico = self.tempo_minutos + 40
+        self.avisou_fim_energetico = False
 
     def checar_estado_jogo(self) -> str:
         """Analisa os números e define o destino do jogador"""

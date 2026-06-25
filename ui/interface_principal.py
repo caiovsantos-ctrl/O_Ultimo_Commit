@@ -26,7 +26,7 @@ class ConstrutorTelas:
         return f"{horas:02d}:{minutos:02d}"
 
     def montar_tela_titulo(self, comando_entrar, img_fundo):
-        """Monta a tela de título do jogo, exibindo o nome, subtítulo e um botão para iniciar o jogo"""
+        """Monta a tela de título do jogo"""
         self.limpar_janela()
         if img_fundo:
             self.label_fundo = ctk.CTkLabel(self.janela, image=img_fundo, text="", width=1220, height=700)
@@ -55,7 +55,7 @@ class ConstrutorTelas:
         self.btn_entrar.place(relx=0.5, rely=0.6, anchor="center")
 
     def carregar_tela_introducao(self, img_fundo_borrada, historia_completa, comando_proximo):
-        """Monta a tela de introdução do jogo, exibindo a história inicial com um efeito de digitação e um botão para avançar"""
+        """Monta a tela de introdução do jogo, exibindo a história inicial"""
         self.tag_jogo.destroy()
         self.titulo_jogo.destroy()
         self.sub_jogo.destroy()
@@ -86,7 +86,7 @@ class ConstrutorTelas:
             self.btn_proximo.place(x=700, y=185)
 
     def desenhar_cenario_completo(self, local: str, item_do_local: str, foto_fundo, jogador, comando_mover_interno, comando_procurar):
-        """Monta a divisão de tela original: Cenário (900x700) e Painel Lateral (320x700)"""
+        """Monta a divisão de tela original: Cenário e Painel Lateral"""
         self.limpar_janela()
         if foto_fundo:
             self.label_fundo = ctk.CTkLabel(self.janela, width=900, height=700, image=foto_fundo, text="")
@@ -104,6 +104,13 @@ class ConstrutorTelas:
             ctk.CTkButton(self.painel_lateral, text="🍔 Comer no RU (R$ 3.50 | +50 min)", fg_color="#2980b9", command=lambda: self.janela.comprar_comida("RU")).pack(pady=5, padx=20, fill="x")
         elif "Lanchonete" in local:
             ctk.CTkButton(self.painel_lateral, text="🍔 Comprar Salgado (R$ 7.00 | +10 min)", fg_color="#2980b9", command=lambda: self.janela.comprar_comida("Lanchonete")).pack(pady=5, padx=20, fill="x")
+            ctk.CTkButton(
+            self.painel_lateral, 
+            text="⚡ Comprar Energético (R$ 5.00 | Foco + Vel)", 
+            fg_color="#f39c12", 
+            hover_color="#d68910", 
+            command=self.janela.acao_comprar_energetico
+            ).pack(pady=5, padx=20, fill="x")
         locais_venda = ["Parada de Ônibus", "A Praça", "Ed Física (Entrada)"]
         if local in locais_venda and jogador.trufas > 0:
             ctk.CTkButton(

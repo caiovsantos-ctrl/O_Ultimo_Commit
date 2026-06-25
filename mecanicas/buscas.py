@@ -14,7 +14,8 @@ class GerenciadorBuscas:
         jogador.modificar_energia(self.custo_energia)
         if item_do_local in jogador.itens_encontrados:
             return "Você revirou tudo, mas lembra que já pegou o que precisava aqui.", False
-        if random.random() < self.chance_sucesso:
+        chance_atual = 1.0 if jogador.tem_efeito_energetico() else self.chance_sucesso
+        if random.random() < chance_atual:
             msg = "Você examinou o local... Parece que tem algo por aqui. Clique nele!"
             return msg, True     
         return "Você procurou atrás das cadeiras e armários, mas não achou nada útil.", False

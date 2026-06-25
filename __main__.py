@@ -8,8 +8,8 @@ from mecanicas.eventos import GerenciadorEventos
 from ui.carregar_imagem import GerenciadorMidia
 from ui.transicao import TelasTransicao
 from ui.interface_principal import ConstrutorTelas
-from ui.hud import PainelHUD
 from ui.cenarios import GerenciadorCenarios
+from gerenciador_som import GerenciadorSom
 
 
 class JogoBSI(ctk.CTk):
@@ -29,6 +29,7 @@ class JogoBSI(ctk.CTk):
         self.telas_transicao = TelasTransicao(self)
         self.construtor_visual = ConstrutorTelas(self)
         self.gerenciador_cenarios = GerenciadorCenarios()
+        self.gerenciador_som = GerenciadorSom()
         self.historia = (
             "Quinta-feira, 07:00 da manhã.\n\n"
             "Passei a madrugada inteira codando o projeto de Princípios de Programação. "
@@ -57,6 +58,7 @@ class JogoBSI(ctk.CTk):
         
     def iniciar_jogo(self):
         """Inicia o jogo montando a tela de título e depois a introdução"""
+        self.gerenciador_som.atualizar_som_abertura(True)
         img_base = self.midia.obter_imagem("frente_rural")
         self.construtor_visual.montar_tela_titulo(self.carregar_intro, img_base)
         self.mainloop()
@@ -68,15 +70,16 @@ class JogoBSI(ctk.CTk):
 
     def iniciar_primeira_fase(self):
         """Inicia a primeira fase do jogo carregando o cenário inicial e o HUD"""
+        self.gerenciador_som.atualizar_som_abertura(False)
         self.carregar_cenario("Prédio Central")
 
     def carregar_cenario(self, local: str, item_do_local: str = None):
         """Carrega o cenário solicitado, exibindo o item camuflado e controlando o clima dinâmico."""
         if self.verificar_fim_de_jogo(): 
-            return     
+            return             
         if item_do_local is None:
             item_do_local = self.distribuicao_itens.get(local, None)      
-        self.item_local_atual = item_do_local 
+        self.item_local_atual = item_do_local        
         mapa_chuva = {
             "Parada de Ônibus": "parada chuva",
             "RU": "ru chuva",
@@ -102,13 +105,23 @@ class JogoBSI(ctk.CTk):
                 nome_asset_fundo = mapa_chuva[local]
             else:
                 nome_asset_fundo = local
+        deve_tocar_chuva = self.jogador.esta_chovendo() and local in mapa_chuva
+        self.gerenciador_som.atualizar_som_clima(deve_tocar_chuva)
+        locais_abertos = ["Parada de Ônibus", "CEAGRI (Entrada)", "Ed Física (Entrada)", "Prédio Central", "Lanchonete"]
+        deve_tocar_ambiente = (local in locais_abertos) and not self.jogador.esta_chovendo()
+        self.gerenciador_som.atualizar_som_ambiente(deve_tocar_ambiente)
+        esta_na_sala = local in mapa_escuro
+        self.gerenciador_som.atualizar_som_sala(esta_na_sala)
+        esta_no_ru = (local == "RU")
+        self.gerenciador_som.atualizar_som_ru(esta_no_ru)
+        esta_na_praca = (local == "A Praça")
+        self.gerenciador_som.atualizar_som_praca(esta_na_praca)
         foto_fundo = self.midia.obter_imagem(nome_asset_fundo)
         locais_permitidos_venda = ["Parada de Ônibus", "Ed Física (Entrada)"]
         if local in locais_permitidos_venda and self.jogador.trufas > 0:
             comando_vender = self.acao_vender_trufa
         else:
-            comando_vender = None
-        foto_fundo = self.midia.obter_imagem(nome_asset_fundo)     
+            comando_vender = None          
         self.construtor_visual.desenhar_cenario_completo(
             local, 
             item_do_local, 
@@ -119,16 +132,19 @@ class JogoBSI(ctk.CTk):
         )
 
     def viajar(self, destino: str, meio: str):
+        """Processa a ação de viajar para outro local a pé ou de ônibus"""
         if meio == "pe":
+            self.gerenciador_som.atualizar_som_andar(True)
             msg_viagem, evento = self.navegacao.viajar_a_pe(self.jogador, destino)
             texto_tela = msg_viagem + self.jogador.checar_alertas_clima()            
             img_nome = "tela pe chuva" if self.jogador.esta_chovendo() else "tela_andando"
             img = self.midia.obter_imagem(img_nome)           
-            self.telas_transicao.mostrar_tela_pe(texto_tela, img, lambda: self.checar_chegada(destino, evento, "saguim"))
+            self.telas_transicao.mostrar_tela_pe(texto_tela, img, lambda: self.checar_chegada(destino, evento, "saguim"))          
         else:
             msg_viagem, sucesso = self.navegacao.viajar_onibus(self.jogador, destino)
             texto_tela = msg_viagem + self.jogador.checar_alertas_clima()           
             if sucesso:
+                self.gerenciador_som.tocar_efeito("som_onibus.wav")
                 img_nome = "tela onibus chuva" if self.jogador.esta_chovendo() else "tela_onibus"
                 img = self.midia.obter_imagem(img_nome)
                 self.telas_transicao.mostrar_tela_onibus(texto_tela, img, lambda: self.checar_chegada(destino))
@@ -137,7 +153,11 @@ class JogoBSI(ctk.CTk):
 
     def mover_interno(self, destino: str):
         """Processa a ação de se mover internamente dentro do mesmo local"""
+        tempo_gasto = 5
         msg, disparar_veterano = self.navegacao.mover_interno(self.jogador, destino) 
+        if self.jogador.tem_efeito_energetico():
+            tempo_gasto = 2           
+        self.jogador.passar_tempo(tempo_gasto)
         if disparar_veterano:
             img_destino = self.midia.obter_imagem(destino)
             self.telas_transicao.mostrar_evento_veterano(
@@ -151,14 +171,19 @@ class JogoBSI(ctk.CTk):
                 self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, msg)
 
     def processar_atalho(self):
+        """Processa a ação de usar o atalho"""
+        self.gerenciador_som.atualizar_som_andar(True)       
         msg_viagem, sucesso, valor = self.navegacao.usar_atalho(self.jogador)
         texto_tela = f"🏃 ATALHO\n\n{msg_viagem}" + self.jogador.checar_alertas_clima()      
         img_nome = "tela pe chuva" if self.jogador.esta_chovendo() else "tela_andando"
         img = self.midia.obter_imagem(img_nome)     
+        def ao_chegar_atalho():
+            self.gerenciador_som.atualizar_som_andar(False) 
+            self.carregar_cenario("RU") 
         self.telas_transicao.mostrar_tela_pe(
             texto_tela, 
             img, 
-            lambda: self.carregar_cenario("RU")
+            ao_chegar_atalho 
         )
 
     def resolver_evento_veterano(self, escolha: str, destino: str):
@@ -170,6 +195,7 @@ class JogoBSI(ctk.CTk):
 
     def checar_chegada(self, destino: str, tem_evento: bool = False, tipo_evento: str = "", item_local: str = None):
         """Checa se o jogador chegou ao destino e se deve disparar um evento"""
+        self.gerenciador_som.atualizar_som_andar(False)
         if self.verificar_fim_de_jogo(): 
             return
         if tem_evento and tipo_evento == "saguim":
@@ -191,6 +217,7 @@ class JogoBSI(ctk.CTk):
 
     def acao_procurar(self):
         """Processa a ação de procurar o item perdido no cenário atual"""
+        self.gerenciador_som.tocar_efeito("som_procurar.wav") 
         if not hasattr(self, 'item_local_atual') or not self.item_local_atual:
             self.jogador.passar_tempo(10)
             self.jogador.modificar_energia(-5)
@@ -225,6 +252,7 @@ class JogoBSI(ctk.CTk):
             img_vitoria = self.midia.obter_imagem("vitoria")
             self.telas_transicao.final_vitoria(img_vitoria, lambda: sys.exit())
         else:
+            self.gerenciador_som.tocar_efeito("som_coleta.wav")
             msg_sucesso = f"🎉 INCRÍVEL! Você encontrou: {nome_item}! ({len(self.jogador.itens_encontrados)}/3 itens recuperados)"
             self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, msg_sucesso)
 
@@ -232,6 +260,7 @@ class JogoBSI(ctk.CTk):
         """Processa a ação de comprar comida"""
         msg, sucesso = self.sobrevivencia.comprar_comida(self.jogador, local)
         self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, msg)
+        self.gerenciador_som.tocar_efeito("som_comer.wav") 
         self.verificar_fim_de_jogo()
 
     def acao_vender_trufa(self, local_venda: str):
@@ -241,6 +270,24 @@ class JogoBSI(ctk.CTk):
             return
         self.carregar_cenario(local_venda)
         self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, msg)
+        self.gerenciador_som.tocar_efeito("som_vender.mp3")
+
+    def acao_comprar_energetico(self):
+        """Processa a compra do Energético na Lanchonete"""
+        preco = 5.00
+        if self.jogador.dinheiro >= preco:
+            self.jogador.modificar_dinheiro(-preco)
+            self.jogador.consumir_energetico()
+            self.jogador.passar_tempo(5) 
+            self.gerenciador_som.tocar_efeito("som_energetico.wav")         
+            msg = "⚡ Você tomou um Energético!\nPelos próximos 40 minutos você andará mais rápido e achará itens com 100% de certeza no local certo."
+            if self.verificar_fim_de_jogo():
+                return
+            self.carregar_cenario("Lanchonete")
+            self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, msg)
+        else:
+            self.carregar_cenario("Lanchonete")
+            self.construtor_visual.gerenciador_hud.atualizar_textos(self.jogador, f"Dinheiro insuficiente para o Energético (R$ {preco:.2f}).")
 
     def verificar_fim_de_jogo(self) -> bool:
         """Checa se o jogo chegou a um estado de vitória, derrota por desmaio ou derrota por tempo, e exibe a tela correspondente"""
